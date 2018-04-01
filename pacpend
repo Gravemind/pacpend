@@ -279,6 +279,9 @@ sort keys:
     parser.add_argument('--color', metavar="<when>",
         choices=['never', 'always', 'auto'], default='auto',
         help = 'when to use colors.\n(default: %(default)s)')
+    parser.add_argument('-u', '--url',
+        action = 'store_true',
+        help = 'display package url column.\n(default: %(default)s)')
     parser.add_argument('-a', '--aur',
         action = 'store_true',
         help = 'download foreign packages info from AUR.\n(default: %(default)s)')
@@ -506,12 +509,19 @@ def main(rawargs):
             p.append(newvercolor)
             p.append(olddate)
             p.append(sizediff)
-            if len(pkgu.groups) > 0:
-                p.append("(" + " ".join(pkgu.groups) + ")")
+            if args.url:
+                if pkgu.db.name == 'aur':
+                    url = 'https://aur.archlinux.org/packages/'+pkgu.name
+                else:
+                    url = 'https://www.archlinux.org/packages/'+pkgu.db.name+'/'+pkgu.arch+'/'+pkgu.name
+                p.append(url)
+                #p.append(pkgu.url)
             else:
-                p.append('')
-            #p.append('https://www.archlinux.org/packages/'+pkgu.db.name+'/'+pkgu.arch+'/'+pkgu.name+'/')
-            #p.append(pkgu.url)
+                if len(pkgu.groups) > 0:
+                    grp = "(" + " ".join(pkgu.groups) + ")"
+                else:
+                    grp = ''
+                p.append(grp)
 
             outtable.append(p)
 
