@@ -161,17 +161,17 @@ class AurPkg:
             return []
 
         pairs = []
-        foreign_names = []
+        not_found_names = []
         for pkg in pkglist:
             aurdata = next((d for d in data['results'] if d['Name'] == pkg.name), None)
             if not aurdata:
-                foreign_names.append(pkg.name)
+                not_found_names.append(pkg.name)
                 continue
             aurpkg = AurPkg(pkg, aurdata)
             pairs.append((pkg, aurpkg))
 
-        if foreign_names:
-            sys.stderr.write('warning: foreign package not found in AUR: {}\n'.format(" ".join(foreign_names)))
+        if not_found_names:
+            sys.stderr.write('package{} not found either in sync dbs or in AUR db: {}\n'.format("s" if len(not_found_names) > 1 else "", " ".join(not_found_names)))
 
         return pairs
 
