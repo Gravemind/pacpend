@@ -252,6 +252,9 @@ Here is how the database gets picked:
   - non-empty $CHECKUPDATES_DB -> $CHECKUPDATES_DB
   - same default dbpath as `checkupdates`'s
 
+Displayed columns are: sync db name, package name, old version, new version,
+time between old and new version build date, installed size difference.
+
 examples:
   - Simply checking for updates:
   $> checkupdates > /dev/null && %(prog)s
@@ -282,7 +285,7 @@ sort keys:
         help = 'threshold in months to colorize old packages.\n(default: %(default)s)')
     parser.add_argument('--color', metavar="<when>",
         choices=['never', 'always', 'auto'], default='auto',
-        help = 'when to use colors.\n(default: %(default)s)')
+        help = 'when to use colors (%(choices)s).\n(default: %(default)s)')
     parser.add_argument('-u', '--url',
         action = 'store_true',
         help = 'display package url column.\n(default: %(default)s)')
