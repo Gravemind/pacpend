@@ -53,20 +53,24 @@ def strip_ANSI(s):
     return strip_ANSI_pat("", s)
 
 def seconds_to_human(s):
-    a = [(31556736, 'Y', 'year', '-'),
-         #(2630016, 'M', 'month'),
-         (2629746, 'M', 'month', '-'),
-         #(2592000, 'M', 'month'),
-         (86400, 'd', 'day', ' '),
-         (3600, 'h', 'hour', ':'),
-         (60, 'm', 'min', ':'),
-         (1, 's', 'sec', '')]
+    a = [(31556736, 'yr', 'year', '-'),
+         #(2630016, 'mo', 'month'),
+         (2629746, 'mo', 'month', '-'),
+         #(2592000, 'mo', 'month'),
+         (86400, 'da', 'day', ' '),
+         (3600, 'hr', 'hour', ':'),
+         (60, 'mi', 'min', ':'),
+         (1, 'se', 'sec', '')]
+    pref=""
+    if s < 0:
+        pref="-"
+        s = -s
     r = []
     for d in a:
         if s >= d[0]:
             f = (s / d[0])
             #return str(round(f, 1)) + ' ' + d[2] + 's'
-            return str(round(f, 1)) + d[1]
+            return pref + str(round(f, 1)) + d[1]
     return 'now'
 
 starts_with_epoch_re_search = re.compile("^\d+:").search
