@@ -32,15 +32,16 @@ COLORS={ 'red'      : "\033[31m",
          'reset'    : "\033[0m" }
 def col_never(*cs):  return ''
 def col_always(*cs): return "".join([COLORS[c] for c in cs])
-global col
+global col, color_enabled
 col = col_never
+color_enabled = False
 def init_col_when(when):
+    global col, color_enabled
     if when == 'auto':
-        usecolor=sys.stdout.isatty()
+        color_enabled=sys.stdout.isatty()
     else:
-        usecolor=(when == 'always')
-    global col
-    col = col_always if usecolor else col_never
+        color_enabled=(when == 'always')
+    col = col_always if color_enabled else col_never
 
 ## https://stackoverflow.com/questions/14889454/printed-length-of-a-string-in-python
 strip_ANSI_pat = re.compile(r"""
@@ -292,6 +293,9 @@ sort keys:
     parser.add_argument('-a', '--aur',
         action = 'store_true',
         help = 'download foreign packages info from AUR.\n(default: %(default)s)')
+    parser.add_argument('-H', '--highlight', metavar='<word,...>',
+        action = 'store', dest = 'highlight', type = str, default="",
+        help = 'Highlight package names containing any of <word,...>.')
 
     filtering = parser.add_argument_group('filter')
     filtering.add_argument('-e', '--explicit',
@@ -344,6 +348,7 @@ def main(rawargs):
 
     args = parser.parse_args(rawargs)
     args_old_sec = args.old * 2629746
+    args_highlights = [ hl for hl in args.highlight.split(',') if len(hl) > 0 ]
 
     init_col_when(args.color)
     col_vers_old=col('blue')
@@ -353,6 +358,7 @@ def main(rawargs):
     col_db=col('bold', 'magenta')
     col_old=col('bold', 'cyan')
     col_explicit=col('bold', 'white')
+    col_highlight=col('bold', 'green')
     col_reset=col('reset')
 
     # Pacman config file
@@ -494,8 +500,14 @@ def main(rawargs):
 
         for pkg, pkgu in pkgsorted:
             name = pkgu.name
-            if pkg.reason == pyalpm.PKG_REASON_EXPLICIT:
-                name = col_explicit + name + col_reset
+            colname = name
+            if color_enabled:
+                c = col_explicit if pkg.reason == pyalpm.PKG_REASON_EXPLICIT else col_reset
+                for hl in args_highlights:
+                    if hl in name:
+                        c = col_highlight
+                        break
+                colname = c + colname + col_reset
             oldver = pkg.version
             newver = pkgu.version
             oldveri, newveri = find_version_diff(oldver, newver)
@@ -510,7 +522,7 @@ def main(rawargs):
 
             p = []
             p.append(ident + col_db + pkgu.db.name + col_reset)
-            p.append(name)
+            p.append(colname)
             p.append(oldvercolor)
             #p.append("->")
             p.append(newvercolor)
