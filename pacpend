@@ -20,7 +20,8 @@ import pycman.config
 import pprint
 pp = pprint.PrettyPrinter(indent=4).pprint
 
-COLORS={ 'red'      : "\033[31m",
+COLORS={ 'black'    : "\033[30m",
+         'red'      : "\033[31m",
          'green'    : "\033[32m",
          'yellow'   : "\033[33m",
          'blue'     : "\033[34m",
@@ -296,6 +297,9 @@ sort keys:
     parser.add_argument('-H', '--highlight', metavar='<word,...>',
         action = 'store', dest = 'highlight', type = str, default="",
         help = 'Highlight package names containing any of <word,...>.')
+    parser.add_argument('-F', '--fade', metavar='<word,...>',
+        action = 'store', dest = 'fade', type = str, default="",
+        help = 'Fade-out package names containing any of <word,...>.')
 
     filtering = parser.add_argument_group('filter')
     filtering.add_argument('-e', '--explicit',
@@ -348,7 +352,9 @@ def main(rawargs):
 
     args = parser.parse_args(rawargs)
     args_old_sec = args.old * 2629746
-    args_highlights = [ hl for hl in args.highlight.split(',') if len(hl) > 0 ]
+    arg_to_list = lambda l: [ e for e in l.split(',') if len(e) > 0 ]
+    args_highlights = arg_to_list(args.highlight)
+    args_fades = arg_to_list(args.fade)
 
     init_col_when(args.color)
     col_vers_old=col('blue')
@@ -359,6 +365,7 @@ def main(rawargs):
     col_old=col('bold', 'cyan')
     col_explicit=col('bold', 'white')
     col_highlight=col('bold', 'green')
+    col_fade=col('bold', 'black')
     col_reset=col('reset')
 
     # Pacman config file
@@ -503,10 +510,10 @@ def main(rawargs):
             colname = name
             if color_enabled:
                 c = col_explicit if pkg.reason == pyalpm.PKG_REASON_EXPLICIT else col_reset
-                for hl in args_highlights:
-                    if hl in name:
-                        c = col_highlight
-                        break
+                if any([n in name for n in args_highlights]):
+                    c = col_highlight
+                elif any([n in name for n in args_fades]):
+                    c = col_fade
                 colname = c + colname + col_reset
             oldver = pkg.version
             newver = pkgu.version
