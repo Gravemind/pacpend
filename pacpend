@@ -76,7 +76,7 @@ def seconds_to_human(s):
 
 starts_with_epoch_re_search = re.compile("^\d+:").search
 ends_with_pkgrel_re_search = re.compile("-\d+$").search
-version_comp_re = re.compile("[0-9a-zA-Z+]+");
+version_comp_re = re.compile("[0-9a-zA-Z+]+")
 
 def versions_components_normalized(a, b):
     ca = [ (m.start(), m.group()) for m in version_comp_re.finditer(a) ]
@@ -110,7 +110,7 @@ def versions_components_normalized(a, b):
 class TestVersions(unittest.TestCase):
     def test_versions_components_normalized(self):
         self.assertEqual(versions_components_normalized("1.2", "1.2"),
-                         ([ (0, "1"), (2, "2") ], [ (0, "1"), (2, "2") ]))
+                         ([(0, "1"), (2, "2") ], [ (0, "1"), (2, "2")]))
         self.assertEqual(versions_components_normalized("1.2.3.4", "2:2-2"),
                          ([(0, "0"), (0, "1"), (2, "2"), (4, "3"), (6, "4"), (7, "0")],
                           [(0, "2"), (2, "2"), (4, "0"), (4, "0"), (4, "0"), (4, "2")]))
