@@ -6,11 +6,12 @@ import re
 import argparse
 import time
 import os
-import subprocess
 import unittest
 import collections
-import json, urllib.parse, urllib.request
-from operator import itemgetter, attrgetter
+import json
+import urllib.parse
+import urllib.request
+from operator import itemgetter
 
 # https://git.archlinux.org/pyalpm.git/
 # pacman -S pyalpm
@@ -58,7 +59,7 @@ def init_col_when(when):
     col = col_always if color_enabled else col_never
 
 
-## https://stackoverflow.com/questions/14889454/printed-length-of-a-string-in-python
+# https://stackoverflow.com/questions/14889454/printed-length-of-a-string-in-python
 strip_ANSI_pat = re.compile(
     r"""
     \x1b     # literal ESC
@@ -89,7 +90,6 @@ def seconds_to_human(s):
     if s < 0:
         pref = "-"
         s = -s
-    r = []
     for d in a:
         if s >= d[0]:
             f = s / d[0]
@@ -98,9 +98,9 @@ def seconds_to_human(s):
     return "now"
 
 
-starts_with_epoch_re_search = re.compile("^\d+:").search
-ends_with_pkgrel_re_search = re.compile("-\d+$").search
-version_comp_re = re.compile("[0-9a-zA-Z+]+")
+starts_with_epoch_re_search = re.compile(r"^\d+:").search
+ends_with_pkgrel_re_search = re.compile(r"-\d+$").search
+version_comp_re = re.compile(r"[0-9a-zA-Z+]+")
 
 
 def versions_components_normalized(a, b):
@@ -109,8 +109,8 @@ def versions_components_normalized(a, b):
     assert len(ca) > 0
     assert len(cb) > 0
     # fix epoch changes
-    epocha = starts_with_epoch_re_search(a) != None
-    epochb = starts_with_epoch_re_search(b) != None
+    epocha = starts_with_epoch_re_search(a) is not None
+    epochb = starts_with_epoch_re_search(b) is not None
     if epocha != epochb:
         if not epocha:
             ca = [(0, "0")] + ca
@@ -120,14 +120,14 @@ def versions_components_normalized(a, b):
         ca = ca[1:]
         cb = cb[1:]
     # fix pkrel changes
-    pkgrela = ends_with_pkgrel_re_search(a) != None
-    if pkgrela != (ends_with_pkgrel_re_search(b) != None):
+    pkgrela = ends_with_pkgrel_re_search(a) is not None
+    if pkgrela != (ends_with_pkgrel_re_search(b) is not None):
         if not pkgrela:
             ca.append((len(a), "0"))
         else:
             cb.append((len(b), "0"))
 
-    ## padd before pkgrel to equal size
+    # padd before pkgrel to equal size
     def paddb(ca, cb):
         return cb[:-1] + [(cb[-1][0], "0") for _ in range(len(ca) - len(cb))] + cb[-1:]
 
@@ -416,9 +416,12 @@ sort keys:
         dest="sortkeys",
         action=SortChoiceListAction,
         default=SortChoiceListAction.DEFAULT,
-        help='ordered sort key list.\nsee sort keys section.\n"-" suffix to reverse: name-,vdiff-\n(default: '
-        + ",".join(SortChoiceListAction.DEFAULT)
-        + ")",
+        help=(
+            "ordered sort key list.\n"
+            "see sort keys section.\n"
+            '"-" suffix to reverse: name-,vdiff-\n'
+            "(default: " + ",".join(SortChoiceListAction.DEFAULT) + ")"
+        ),
     )
 
     # partial pyalpm/pycman/config.py make_parser()
@@ -472,7 +475,10 @@ def main(rawargs):
 
     args = parser.parse_args(rawargs)
     args_old_sec = args.old * 2629746
-    arg_to_list = lambda l: [e for e in l.split(",") if len(e) > 0]
+
+    def arg_to_list(lst):
+        return [e for e in lst.split(",") if len(e) > 0]
+
     args_highlights = arg_to_list(args.highlight)
     args_fades = arg_to_list(args.fade)
 
@@ -627,14 +633,15 @@ def main(rawargs):
                 pkgsorted.sort(key=lambda p: p[1].name, reverse=rev)
             elif sortkey == "groups":
                 pkgsorted.sort(
-                    key=lambda p: " ".join(p[1].groups) if len(p[1].groups) > 0 else "~",
+                    key=lambda p: (" ".join(p[1].groups) if len(p[1].groups) > 0 else "~"),
                     reverse=rev,
                 )
             elif sortkey == "db":
                 pkgsorted.sort(key=lambda p: p[1].db.name, reverse=rev)
             elif sortkey == "explicit":
                 pkgsorted.sort(
-                    key=lambda p: p[0].reason == pyalpm.PKG_REASON_EXPLICIT, reverse=not rev
+                    key=lambda p: p[0].reason == pyalpm.PKG_REASON_EXPLICIT,
+                    reverse=not rev,
                 )
             elif sortkey == "old":
                 pkgsorted.sort(key=lambda p: p[0].builddate, reverse=rev)
@@ -723,8 +730,8 @@ def main(rawargs):
     nameverw += 1
     for i in range(len(outtable_lengths)):
         if not isinstance(outtable[i], str):
-            l = outtable_lengths[i][namecoli] + outtable_lengths[i][namecoli + 1]
-            outtable[i][namecoli] += (nameverw - l) * " " + outtable[i][namecoli + 1]
+            ln = outtable_lengths[i][namecoli] + outtable_lengths[i][namecoli + 1]
+            outtable[i][namecoli] += (nameverw - ln) * " " + outtable[i][namecoli + 1]
             del outtable[i][namecoli + 1]
             del outtable_lengths[i][namecoli + 1]
 
